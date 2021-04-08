@@ -1,5 +1,9 @@
 <?php
 
+ini_set('display_errors', 1);
+#ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Bigcommerce\Api\Client as Bigcommerce;
@@ -24,7 +28,7 @@ $app->get('/load', function (Request $request) use ($app) {
 	if (empty($data)) {
 		return 'Invalid signed_payload.';
 	}
-	$redis = new Credis_Client('localhost');
+	$redis = new Credis_Client(redisSocket());
 	$key = getUserKey($data['store_hash'], $data['user']['email']);
 	$user = json_decode($redis->get($key), true);
 	if (empty($user)) {
@@ -259,6 +263,15 @@ function bcAuthService()
 function getUserKey($storeHash, $email)
 {
 	return "kitty.php:$storeHash:$email";
+}
+
+/**
+ * @return string Get the redis socket from the environment vars
+ */
+function redisSocket()
+{
+  $redisSocket = getenv('BC_REDIS_SOCKET');
+  return $redisSocket ?: '';
 }
 
 $app->run();
